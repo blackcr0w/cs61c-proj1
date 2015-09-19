@@ -68,6 +68,7 @@ int beargit_init(void) {
  */
 
 int beargit_add(const char* filename) {
+
   FILE* findex = fopen(".beargit/.index", "r");
   FILE *fnewindex = fopen(".beargit/.newindex", "w"); // jk: what is the diff of these two pointers?
 
@@ -127,30 +128,42 @@ int beargit_status() {
  *
  */
 
-int beargit_rm(const char* filename) {
+int beargit_rm(const char* filename) {  // need better implementation of beargit rm
   /* COMPLETE THE REST */
-  FILE* findex = fopen(".beargit/.index", "wr");
-  FILE *fnewindex = fopen(".beargit/.newindex", "w");  // this is the file which stores new data
-  int i = 0; // i keeps track of the current read file number
+  //jk: need modify again
+
+  FILE* findex = fopen(".beargit/.index", "a+");
+  FILE *fnewindex = fopen(".beargit/.newindex", "a+"); // jk: what is the diff of these two pointers?
 
   char line[FILENAME_SIZE];
+  int file_exist = 0;
+
   while(fgets(line, sizeof(line), findex)) {
+    strtok(line, "\n");
     if (strcmp(line, filename) == 0) {
+      file_exist = 1;
       continue;
-    fprintf(fnewindex, sizeof(line), line);
+    }
+    fprintf(fnewindex, "%s\n", line);
   }
 
-  // if (i < current_file_no) {
-  //   fprintf(stdout, "%s\n", "");
-  //   delete fnewindex
-  // }
-  // else {
-  //   fclose(findex);
-  //   fclose(fnewindex);
-  //   mv fnewindex to old index;
-  // }
+  if (file_exist) {
+    // fs_rm(".beargit/.index");
+    fclose(findex);
+    fs_rm(".beargit/.index");
+    FILE* findex2 = fopen(".beargit/.index", "w");  
+    fclose(findex2);
+    fclose(fnewindex);
+    fs_cp(".beargit/.newindex", ".beargit/.index");
+    return 0;
+  }
+  else{
+    //fs_rm(".beargit/.newindex");
+    fprintf(stderr, "ERROR:  File %s not tracked.\n", filename);
+    fclose(fnewindex);
+    return 1;
+  }
 
-  return 0;
 }
 
 /* beargit commit -m <msg>
@@ -159,11 +172,36 @@ int beargit_rm(const char* filename) {
  *
  */
 
+ /*This is the helper function for compare two strings without library function.*/
+int string_compare(const char *str1,const char *str2){
+    int i = 0,flag=0;
+   
+    while(str1[i]!='\0' && str2[i]!='\0'){
+         if(str1[i]!=str2[i]){
+             flag=1;
+             break;
+         }
+         i++;
+    }
+
+    if (flag==0 && str1[i]=='\0' && str2[i]=='\0')
+         return 1;
+    else
+         return 0;
+}
+
 const char* go_bears = "THIS IS BEAR TERRITORY!";
 
 int is_commit_msg_ok(const char* msg) {
+
   /* COMPLETE THE REST */
-  return 0;
+  int is_ok = string_compare(msg, go_bears);
+  if (is_ok)
+    return 0;
+  else {
+    fprintf(stderr, "%s\n", "ERROR:  Message must contain \"THIS IS BEAR TERRITORY!\"");
+    return 1;
+  }  
 }
 
 /* Use next_commit_id to fill in the rest of the commit ID.
@@ -173,8 +211,10 @@ int is_commit_msg_ok(const char* msg) {
  * You will need to use a function we have provided for you.
  */
 
+
 void next_commit_id(char* commit_id) {
      /* COMPLETE THE REST */
+
 }
 
 int beargit_commit(const char* msg) {
