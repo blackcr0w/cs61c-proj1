@@ -68,7 +68,7 @@ int beargit_init(void) {
 
 int beargit_add(const char* filename) {
   FILE* findex = fopen(".beargit/.index", "r");
-  FILE *fnewindex = fopen(".beargit/.newindex", "w");
+  FILE *fnewindex = fopen(".beargit/.newindex", "w"); // jk: what is the diff of these two pointers?
 
   char line[FILENAME_SIZE];
   while(fgets(line, sizeof(line), findex)) {
@@ -88,7 +88,7 @@ int beargit_add(const char* filename) {
   fclose(findex);
   fclose(fnewindex);
 
-  fs_mv(".beargit/.newindex", ".beargit/.index");
+  fs_mv(".beargit/.newindex", ".beargit/.index"); // move newindex to index, overwrite old one
 
   return 0;
 }
@@ -101,6 +101,18 @@ int beargit_add(const char* filename) {
 
 int beargit_status() {
   /* COMPLETE THE REST */
+
+  FILE* findex = fopen(".beargit/.index", "r");
+  char line[FILENAME_SIZE];
+  int i = 0;
+
+  fprintf(stdout, "Tracked files:\n\n");
+  while(fgets(line, sizeof(line), findex)) {
+    fprintf(stdout, "%s", line);
+    i++;
+  }
+  fprintf(stdout, "\n");
+  fprintf(stdout, "There are %d files total.\n", i);
 
   return 0;
 }
