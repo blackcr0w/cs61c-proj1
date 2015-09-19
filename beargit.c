@@ -36,6 +36,7 @@
  * Output (to stdout):
  * - None if successful
  */
+int current_file_no = 0;
 
 int beargit_init(void) {
   fs_mkdir(".beargit");
@@ -73,11 +74,13 @@ int beargit_add(const char* filename) {
   char line[FILENAME_SIZE];
   while(fgets(line, sizeof(line), findex)) {
     strtok(line, "\n");
+    current_file_no++;
     if (strcmp(line, filename) == 0) {
       fprintf(stderr, "ERROR:  File %s has already been added.\n", filename);
       fclose(findex);
       fclose(fnewindex);
       fs_rm(".beargit/.newindex");
+      current_file_no--;
       return 3;
     }
 
@@ -113,6 +116,7 @@ int beargit_status() {
   }
   fprintf(stdout, "\n");
   fprintf(stdout, "There are %d files total.\n", i);
+  fclose(findex);
 
   return 0;
 }
@@ -125,6 +129,26 @@ int beargit_status() {
 
 int beargit_rm(const char* filename) {
   /* COMPLETE THE REST */
+  FILE* findex = fopen(".beargit/.index", "wr");
+  FILE *fnewindex = fopen(".beargit/.newindex", "w");  // this is the file which stores new data
+  int i = 0; // i keeps track of the current read file number
+
+  char line[FILENAME_SIZE];
+  while(fgets(line, sizeof(line), findex)) {
+    if (strcmp(line, filename) == 0) {
+      continue;
+    fprintf(fnewindex, sizeof(line), line);
+  }
+
+  // if (i < current_file_no) {
+  //   fprintf(stdout, "%s\n", "");
+  //   delete fnewindex
+  // }
+  // else {
+  //   fclose(findex);
+  //   fclose(fnewindex);
+  //   mv fnewindex to old index;
+  // }
 
   return 0;
 }
