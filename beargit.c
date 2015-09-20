@@ -175,8 +175,9 @@ int beargit_rm(const char* filename) {  // need better implementation of beargit
  /*This is the helper function for compare two strings without library function.*/
 int string_compare(const char *str1,const char *str2){
     int i = 0,flag=0;
+    size_t go_bears_len = strlen(str2);
    
-    while(str1[i]!='\0' && str2[i]!='\0'){
+    while(str1[i]!='\0' && str2[i]!='\0' && i < go_bears_len) {
          if(str1[i]!=str2[i]){
              flag=1;
              break;
@@ -184,7 +185,7 @@ int string_compare(const char *str1,const char *str2){
          i++;
     }
 
-    if (flag==0 && str1[i]=='\0' && str2[i]=='\0')
+    if (flag== 0 && i >= go_bears_len)
          return 1;
     else
          return 0;
@@ -197,10 +198,9 @@ int is_commit_msg_ok(const char* msg) {
   /* COMPLETE THE REST */
   int is_ok = string_compare(msg, go_bears);
   if (is_ok)
-    return 0;
+    return 1;  // match
   else {
-    fprintf(stderr, "%s\n", "ERROR:  Message must contain \"THIS IS BEAR TERRITORY!\"");
-    return 1;
+    return 0;  // not match
   }  
 }
 
@@ -215,19 +215,65 @@ int is_commit_msg_ok(const char* msg) {
 void next_commit_id(char* commit_id) {
      /* COMPLETE THE REST */
 
+  char dest_buf[SHA_HEX_BYTES + 1];
+  cryptohash(commit_id, dest_buf);
+  strcpy(commit_id, dest_buf);
+
 }
 
 int beargit_commit(const char* msg) {
   if (!is_commit_msg_ok(msg)) {
-    fprintf(stderr, "ERROR:  Message must contain \"%s\"\n", go_bears);
+    fprintf(stderr, "ERROR:  Message must contain \"%s\"\n", go_bears);  
     return 1;
   }
 
   char commit_id[COMMIT_ID_SIZE];
   read_string_from_file(".beargit/.prev", commit_id, COMMIT_ID_SIZE);
-  next_commit_id(commit_id);
 
+  char current_branch[BRANCHNAME_SIZE];
+  read_string_from_file(".beargit/.current_branch", current_branch, BRANCHNAME_SIZE);
+
+  char new_commit_id[COMMIT_ID_SIZE + BRANCHNAME_SIZE];
+  strcpy(new_commit_id, commit_id);
+  strcat(new_commit_id, current_branch);
+  next_commit_id(new_commit_id);  // jk: core dumped here. fixed: set dest_buf an fixed array, no a pointer
+
+/*  
+  char *commit_id_char;
+  strcpy(commit_id_char, commit_id);
+  printf("create dir: %s\n", commit_id_char);*/
+
+  char new_commit_dir[1000], new_commit_index[1000], new_commit_prev[1000];
+  strcpy(new_commit_dir, ".beargit/");
+  strcat(new_commit_dir, new_commit_id);
+  strcat(new_commit_dir, "/");
+
+  strcpy(new_commit_index, new_commit_dir);
+  strcpy(new_commit_prev, new_commit_dir);
+  strcat(new_commit_index, ".index");
+  strcat(new_commit_prev, ".prev");
+
+
+  fs_mkdir(new_commit_dir);
+  FILE* findex2 = fopen(new_commit_index, "w");
+  FILE* fprev = fopen(new_commit_prev, "w");
+  fclose(fprev);
+  fclose(findex2);
+
+  fs_cp(".beargit/.index", new_commit_index);
+  fs_cp(".beargit/.prev", new_commit_prev);
+
+  char new_commit_msg[1000];
+  strcpy(new_commit_msg, new_commit_dir);
+  strcat(new_commit_msg, ".msg");
+  FILE* fmsg = fopen(new_commit_msg, "w");
+  
+  write_string_to_file(new_commit_msg, msg);
+  write_string_to_file(".beargit/.prev", new_commit_id);
+
+  fclose(fmsg);
   /* COMPLETE THE REST */
+  //jk: printf("the next is: %s\n", current_branch);
 
   return 0;
 }
