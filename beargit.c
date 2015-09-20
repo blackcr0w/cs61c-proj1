@@ -173,8 +173,12 @@ int beargit_rm(const char* filename) {  // need better implementation of beargit
  */
 
  /*This is the helper function for compare two strings without library function.*/
-int string_compare(const char *str1,const char *str2){
-    int i = 0,flag=0;
+int string_contains(const char *msg,const char *go_bears){
+  if (strstr(msg, go_bears) != NULL)
+    return 1;
+  else 
+    return 0;
+/*    int i = 0,flag=0;
     size_t go_bears_len = strlen(str2);
    
     while(str1[i]!='\0' && str2[i]!='\0' && i < go_bears_len) {
@@ -188,7 +192,7 @@ int string_compare(const char *str1,const char *str2){
     if (flag== 0 && i >= go_bears_len)
          return 1;
     else
-         return 0;
+         return 0;*/
 }
 
 const char* go_bears = "THIS IS BEAR TERRITORY!";
@@ -196,7 +200,7 @@ const char* go_bears = "THIS IS BEAR TERRITORY!";
 int is_commit_msg_ok(const char* msg) {
 
   /* COMPLETE THE REST */
-  int is_ok = string_compare(msg, go_bears);
+  int is_ok = string_contains(msg, go_bears);
   if (is_ok)
     return 1;  // match
   else {
