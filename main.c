@@ -85,6 +85,7 @@ int main(int argc, char **argv) {
         } else if (strcmp(argv[1], "status") == 0) {
             return beargit_status();
         } else if (strcmp(argv[1], "log") == 0) {
+          //jk: look at here on how to pass 0/1 argument in outer API
             int limit = INT_MAX;
             if (argc > 2 && strcmp(argv[2], "-n") == 0){
               if (argc == 3){

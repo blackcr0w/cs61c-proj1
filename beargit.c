@@ -225,7 +225,10 @@ void next_commit_id(char* commit_id) {
 
 }
 
+// jk: TODO: using beargit.h to check error cases.
 int beargit_commit(const char* msg) {
+  if (strlen(msg) > MSG_SIZE)
+    return 0;
   if (!is_commit_msg_ok(msg)) {
     fprintf(stderr, "ERROR:  Message must contain \"%s\"\n", go_bears);  
     return 1;
@@ -290,6 +293,50 @@ int beargit_commit(const char* msg) {
 
 int beargit_log(int limit) {
   /* COMPLETE THE REST */
+  char *current_commit_dir = (char *) malloc(FILENAME_SIZE);
+  char *prev_commit_dir = (char *) malloc(FILENAME_SIZE);
+  char *current_commit_id = (char *) malloc(COMMIT_ID_SIZE);
+  char *current_commit_msg = (char *) malloc(MSG_SIZE);
+  char *prev = ".prev";
+  char *msg = ".msg";
+  int number_of_commit;
+  const char *beargit = ".beargit/";
+
+  strcpy(current_commit_dir, beargit);
+  
+  number_of_commit = 1;
+
+  while(current_commit_id != NULL) {
+    if number_of_commit > limit {
+      break;
+    }
+
+    char *prev_dir = (char *) malloc(FILENAME_SIZE);
+    strcpy(prev_dir, current_commit_dir);
+    strcat(prev_dir, prev);
+    read_string_from_file(prev_dir, current_commit_id, COMMIT_ID_BYTES);  //jk: curr_comm_id stores the ID
+   
+    menset(prev_commit_dir, beargit, sizeof(beargit));
+    strcat(prev_commit_dir,)
+
+
+    current_commit_dir = strcat(current_commit_dir,)
+    curr
+    read_string_from_file( )
+  }
+
+  while not_the_last_commit
+  {
+    if number_of_commit > limit
+      printf error 
+      break;
+    read_string_from_file: current_commit_id+ beargit.msg = commit msg
+    print log info
+
+    read_string_from_file: commit + prev = prev commid
+    current_commit_id = this
+    number_of_commit++;
+  }
   return 0;
 }
 
