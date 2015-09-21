@@ -351,6 +351,11 @@ int beargit_log(int limit) {
     if (!fs_check_dir_exists(curr_dir))
       return 0;
   }
+  free(current_commit_dir);
+  free(curr_dir);
+  free(next_dir);
+  free(current_commit_id);
+  free(current_commit_msg);
 
   return 0;
 }
@@ -358,6 +363,7 @@ int beargit_log(int limit) {
 
 // This helper function returns the branch number for a specific branch, or
 // returns -1 if the branch does not exist.
+//jk: do not know how this is used.
 int get_branch_number(const char* branch_name) {
   FILE* fbranches = fopen(".beargit/.branches", "r");
 
@@ -385,7 +391,21 @@ int get_branch_number(const char* branch_name) {
 
 int beargit_branch() {
   /* COMPLETE THE REST */
+  char *curr_branch = (char *)malloc(BRANCHNAME_SIZE);
+  read_string_from_file(".beargit/.current_branch", curr_branch, BRANCHNAME_SIZE);
+  char line[BRANCHNAME_SIZE];
 
+  FILE* fbranches = fopen(".beargit/.branches", "r");
+  strtok(line, "\n");
+  
+  while(fgets(line, sizeof(line), fbranches)) {
+    strtok(line, "\n");
+    if (strcmp(line, curr_branch) == 0) {
+      printf("*  %s\n", line);
+      continue;
+    }
+    printf("   %s\n", line);
+  }
   return 0;
 }
 
