@@ -293,50 +293,65 @@ int beargit_commit(const char* msg) {
 
 int beargit_log(int limit) {
   /* COMPLETE THE REST */
-  char *current_commit_dir = (char *) malloc(FILENAME_SIZE);
-  char *prev_commit_dir = (char *) malloc(FILENAME_SIZE);
-  char *current_commit_id = (char *) malloc(COMMIT_ID_SIZE);
-  char *current_commit_msg = (char *) malloc(MSG_SIZE);
+  char *current_commit_dir = (char *) malloc(FILENAME_SIZE);  //jk: current working dir
+  char *curr_dir = (char *) malloc(FILENAME_SIZE);  //jk: use this to read ID and msg
+  char *next_dir = (char *) malloc(FILENAME_SIZE);  //jk: use this to read ID and msg  
+  char *current_commit_id = (char *) malloc(COMMIT_ID_SIZE);  //jk: store ID
+  char *current_commit_msg = (char *) malloc(MSG_SIZE);  //jk: stroe msg
   char *prev = ".prev";
   char *msg = ".msg";
   int number_of_commit;
   const char *beargit = ".beargit/";
 
-  strcpy(current_commit_dir, beargit);
-  
+  strcpy(curr_dir, beargit);
   number_of_commit = 1;
 
   while(current_commit_id != NULL) {
-    if number_of_commit > limit {
+
+    if (number_of_commit > limit) 
       break;
+
+    // char *prev_dir = (char *) malloc(FILENAME_SIZE);
+    // strcpy(curr_dir, current_commit_dir);
+    char *temp_dir = (char *) malloc(FILENAME_SIZE);
+    strcpy(temp_dir, curr_dir);
+    strcat(temp_dir, prev);
+
+    read_string_from_file(temp_dir, current_commit_id, COMMIT_ID_BYTES);  //jk: curr_comm_id stores the ID
+
+    memset(temp_dir, '\0', sizeof(temp_dir));
+   
+    strcpy(temp_dir, beargit);
+    strcat(temp_dir, current_commit_id);
+    strcat(temp_dir, "/");
+    strcpy(next_dir, temp_dir);
+
+    if (number_of_commit == 1 && !fs_check_dir_exists(temp_dir)){
+      fprintf(stderr, "%s\n", "ERROR:  There are no commits.");
+      return 1;
     }
 
-    char *prev_dir = (char *) malloc(FILENAME_SIZE);
-    strcpy(prev_dir, current_commit_dir);
-    strcat(prev_dir, prev);
-    read_string_from_file(prev_dir, current_commit_id, COMMIT_ID_BYTES);  //jk: curr_comm_id stores the ID
-   
-    menset(prev_commit_dir, beargit, sizeof(beargit));
-    strcat(prev_commit_dir,)
+    if (!fs_check_dir_exists(temp_dir))
+      return 0;
 
+    strcat(temp_dir, msg);
 
-    current_commit_dir = strcat(current_commit_dir,)
-    curr
-    read_string_from_file( )
-  }
+  
+    read_string_from_file(temp_dir, current_commit_msg, MSG_SIZE);
 
-  while not_the_last_commit
-  {
-    if number_of_commit > limit
-      printf error 
-      break;
-    read_string_from_file: current_commit_id+ beargit.msg = commit msg
-    print log info
+    printf("commit %s\n", current_commit_id);
+    printf("   %s\n\n", current_commit_msg);
 
-    read_string_from_file: commit + prev = prev commid
-    current_commit_id = this
+    memset(curr_dir, '\0', sizeof(curr_dir));
+    strcpy(curr_dir, next_dir);
+    free(temp_dir);
+    memset(next_dir, '\0', sizeof(curr_dir));
     number_of_commit++;
+
+    if (!fs_check_dir_exists(curr_dir))
+      return 0;
   }
+
   return 0;
 }
 
