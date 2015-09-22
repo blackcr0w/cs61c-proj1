@@ -420,6 +420,10 @@ int checkout_commit(const char* commit_id) {
   return 0;
 }
 
+void delete_eof(char *str) {
+
+}
+
 int is_it_a_commit_id(const char* commit_id) {
   char *curr_dir = (char *) malloc(FILENAME_SIZE);  
   char *current_commit_id = (char *) malloc(COMMIT_ID_SIZE);  
@@ -427,14 +431,19 @@ int is_it_a_commit_id(const char* commit_id) {
   const char *prev = ".prev";
 
   strcpy(curr_dir, beargit);
+  printf("%s\n", "here 1");
 
   while(1) {
     char *temp_dir = (char *) malloc(FILENAME_SIZE);
     strcpy(temp_dir, curr_dir);
     strcat(temp_dir, prev);
 
-    read_string_from_file(temp_dir, current_commit_id, COMMIT_ID_BYTES);  
+    read_string_from_file(temp_dir, current_commit_id, COMMIT_ID_BYTES);
+    printf("%s\n", "here 2");  
+    printf("comment_id:%s\n, current_commit_id: %s\n", commit_id, current_commit_id);
     if (!strcmp(commit_id, current_commit_id)) {
+      printf("%s\n", "here 3");
+
       free(curr_dir);
       free(current_commit_id);
       free(temp_dir);
@@ -446,7 +455,9 @@ int is_it_a_commit_id(const char* commit_id) {
     strcpy(temp_dir, beargit);
     strcat(temp_dir, current_commit_id);
     strcat(temp_dir, "/");
+    printf("temp_dir: %s\n", temp_dir);  
     if (!fs_check_dir_exists(temp_dir)) {
+      printf("%s\n", "here 4");
       free(curr_dir);
       free(current_commit_id);
       free(temp_dir);
@@ -482,6 +493,7 @@ int beargit_checkout(const char* arg, int new_branch) {
   // Check whether the argument is a commit ID. If yes, we just stay in detached mode
   // without actually having to change into any other branch.
   if (is_it_a_commit_id(arg)) {
+    printf("%s\n", "judge commitID correct");
     char commit_dir[FILENAME_SIZE] = ".beargit/";
     strcat(commit_dir, arg);  // commit dir = .beargit/commitID
     if (!fs_check_dir_exists(commit_dir)) {

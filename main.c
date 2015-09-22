@@ -101,6 +101,7 @@ int main(int argc, char **argv) {
         } else if (strcmp(argv[1], "branch") == 0) {
             return beargit_branch();
         /******************************************/
+            // jk: ERROR case: beargit checkout with nothing!!
         } else if (strcmp(argv[1], "checkout") == 0) {
             int branch_new = 0;
             char arg[BRANCHNAME_SIZE];
