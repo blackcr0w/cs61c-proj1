@@ -103,7 +103,7 @@ int main(int argc, char **argv) {
         /******************************************/
         } else if (strcmp(argv[1], "checkout") == 0) {
             int branch_new = 0;
-            char* arg = (char *)malloc(BRANCHNAME_SIZE);
+            char arg[BRANCHNAME_SIZE];
             int i = 2;
 
             if (argv[2][0] == '-') {
@@ -120,7 +120,7 @@ int main(int argc, char **argv) {
                 return 1;
             }            
             
-            arg = strcpy(arg, argv[argc - 1]);  // jk: second modify
+            strcpy(arg, argv[argc - 1]);  // jk: second modify
             return beargit_checkout(arg, branch_new); 
 
         } else if (strcmp(argv[1], "reset") == 0) {  // git reset

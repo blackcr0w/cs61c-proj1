@@ -464,16 +464,18 @@ int beargit_checkout(const char* arg, int new_branch) {
   // jk: new_branch indicates whether cheate a new branch
   // jk: arg indicates the real checkout argument: a new branch name or a commit_ID
   // Get the current branch
+  //fprintf(stdout, "%s\n", "in beargit_checkout 0");
   char current_branch[BRANCHNAME_SIZE];
-  read_string_from_file(".beargit/.current_branch", "current_branch", BRANCHNAME_SIZE);
-
-
+  //fprintf(stdout, "%s\n", "in beargit_checkout 1");
+  read_string_from_file(".beargit/.current_branch", current_branch, BRANCHNAME_SIZE);
   // jk: if not detached and checkout, means check out to a new HEAD or get detached???
   // If not detached, update the current branch by storing the current HEAD into that branch's file...
-  if (!strlen(current_branch)) {  // jk: not detached <=> in the HEAD of another branch\
-    printf("%s\n", "in detached branch\n");
+  if (strlen(current_branch)) {  // jk: not detached <=> in the HEAD of another branch
     char current_branch_file[BRANCHNAME_SIZE+50];
     sprintf(current_branch_file, ".beargit/.branch_%s", current_branch);
+    FILE* f_curr_branch = fopen(current_branch_file, "w");
+    fprintf(f_curr_branch, "%s", "\0");
+    fclose(f_curr_branch);      
     fs_cp(".beargit/.prev", current_branch_file);
   }
 
