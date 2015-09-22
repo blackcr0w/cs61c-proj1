@@ -100,41 +100,41 @@ int main(int argc, char **argv) {
             return beargit_log(limit);
         } else if (strcmp(argv[1], "branch") == 0) {
             return beargit_branch();
+        /******************************************/
         } else if (strcmp(argv[1], "checkout") == 0) {
             int branch_new = 0;
-            char* arg = NULL;
+            char* arg = (char *)malloc(BRANCHNAME_SIZE);
+            int i = 2;
 
-            for (int i = 2; i < argc; i++) {
-              if (argv[i][0] == '-') {
-                if (strcmp(argv[i], "-b") == 0) {
-                  branch_new = 1;
-                  continue;
-                } else {
-                  fprintf(stderr, "ERROR: Invalid argument: %s", argv[i]);
-                  return 1;
-                }
+            if (argv[2][0] == '-') {
+              if (strcmp(argv[2], "-b") == 0)   //  beargit checkout -b new_branch
+                branch_new = 1;
+              else {
+                fprintf(stderr, "ERROR: Invalid argument: %s\n", argv[i]);
+                return 1;
               }
-
-              if (arg) {
-                  fprintf(stderr, "ERROR: Too many arguments for checkout!");
-                  return 1;
-              }
-
-              arg = argv[i];
             }
 
-            return beargit_checkout(arg, branch_new);
-        } else if (strcmp(argv[1], "reset") == 0) {
+            if (argc > 4) {  // jk: first modify
+                fprintf(stderr, "ERROR: Too many arguments for checkout!\n");
+                return 1;
+            }            
+            
+            arg = strcpy(arg, argv[argc - 1]);  // jk: second modify
+            return beargit_checkout(arg, branch_new); 
+
+        } else if (strcmp(argv[1], "reset") == 0) {  // git reset
+          /***************************************/
              if (argc < 4) {
                   fprintf(stderr,
-                          "ERROR: Need to specify a commit id and a filename");
+                          "ERROR: Need to specify a commit id and a filename\n");
                   return 1;
              }
 
              return beargit_reset(argv[2], argv[3]);
         } else if (strcmp(argv[1], "merge") == 0) {
              if (argc < 3) {
-                  fprintf(stderr, "ERROR: Need to specify a commit id or branch name");
+                  fprintf(stderr, "ERROR: Need to specify a commit id or branch name\n");
                   return 1;
              }
 

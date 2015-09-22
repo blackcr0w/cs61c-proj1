@@ -298,9 +298,9 @@ int beargit_log(int limit) {
   char *next_dir = (char *) malloc(FILENAME_SIZE);  //jk: use this to read ID and msg  
   char *current_commit_id = (char *) malloc(COMMIT_ID_SIZE);  //jk: store ID
   char *current_commit_msg = (char *) malloc(MSG_SIZE);  //jk: stroe msg
-  char *prev = ".prev";
-  char *msg = ".msg";
   int number_of_commit;
+  const char *prev = ".prev";
+  const char *msg = ".msg";
   const char *beargit = ".beargit/";
 
   strcpy(curr_dir, beargit);
@@ -363,7 +363,7 @@ int beargit_log(int limit) {
 
 // This helper function returns the branch number for a specific branch, or
 // returns -1 if the branch does not exist.
-//jk: do not know how this is used.
+// jk: do not know how this is used.
 int get_branch_number(const char* branch_name) {
   FILE* fbranches = fopen(".beargit/.branches", "r");
 
@@ -395,17 +395,16 @@ int beargit_branch() {
   read_string_from_file(".beargit/.current_branch", curr_branch, BRANCHNAME_SIZE);
   char line[BRANCHNAME_SIZE];
 
-  FILE* fbranches = fopen(".beargit/.branches", "r");
-  strtok(line, "\n");
-  
+  FILE* fbranches = fopen(".beargit/.branches", "r");  
   while(fgets(line, sizeof(line), fbranches)) {
     strtok(line, "\n");
-    if (strcmp(line, curr_branch) == 0) {
+    if (!strcmp(line, curr_branch)) {
       printf("*  %s\n", line);
       continue;
     }
     printf("   %s\n", line);
   }
+  free(curr_branch);
   return 0;
 }
 
@@ -417,21 +416,62 @@ int beargit_branch() {
 
 int checkout_commit(const char* commit_id) {
   /* COMPLETE THE REST */
+
   return 0;
 }
 
 int is_it_a_commit_id(const char* commit_id) {
-  /* COMPLETE THE REST */
-  return 1;
+  char *curr_dir = (char *) malloc(FILENAME_SIZE);  
+  char *current_commit_id = (char *) malloc(COMMIT_ID_SIZE);  
+  const char *beargit = ".beargit/";
+  const char *prev = ".prev";
+
+  strcpy(curr_dir, beargit);
+
+  while(1) {
+    char *temp_dir = (char *) malloc(FILENAME_SIZE);
+    strcpy(temp_dir, curr_dir);
+    strcat(temp_dir, prev);
+
+    read_string_from_file(temp_dir, current_commit_id, COMMIT_ID_BYTES);  
+    if (!strcmp(commit_id, current_commit_id)) {
+      free(curr_dir);
+      free(current_commit_id);
+      free(temp_dir);
+      return 1;      
+    }
+      
+    memset(temp_dir, '\0', sizeof(temp_dir));
+   
+    strcpy(temp_dir, beargit);
+    strcat(temp_dir, current_commit_id);
+    strcat(temp_dir, "/");
+    if (!fs_check_dir_exists(temp_dir)) {
+      free(curr_dir);
+      free(current_commit_id);
+      free(temp_dir);
+      return 0;
+    }      
+    memset(curr_dir, '\0', sizeof(curr_dir));
+    strcpy(curr_dir, temp_dir);
+    free(temp_dir);
+  }
+  
+  return 0;
 }
 
-int beargit_checkout(const char* arg, int new_branch) {
+int beargit_checkout(const char* arg, int new_branch) {  
+  // jk: new_branch indicates whether cheate a new branch
+  // jk: arg indicates the real checkout argument: a new branch name or a commit_ID
   // Get the current branch
   char current_branch[BRANCHNAME_SIZE];
   read_string_from_file(".beargit/.current_branch", "current_branch", BRANCHNAME_SIZE);
 
+
+  // jk: if not detached and checkout, means check out to a new HEAD or get detached???
   // If not detached, update the current branch by storing the current HEAD into that branch's file...
-  if (strlen(current_branch)) {
+  if (!strlen(current_branch)) {  // jk: not detached <=> in the HEAD of another branch\
+    printf("%s\n", "in detached branch\n");
     char current_branch_file[BRANCHNAME_SIZE+50];
     sprintf(current_branch_file, ".beargit/.branch_%s", current_branch);
     fs_cp(".beargit/.prev", current_branch_file);
@@ -441,7 +481,7 @@ int beargit_checkout(const char* arg, int new_branch) {
   // without actually having to change into any other branch.
   if (is_it_a_commit_id(arg)) {
     char commit_dir[FILENAME_SIZE] = ".beargit/";
-    strcat(commit_dir, arg);
+    strcat(commit_dir, arg);  // commit dir = .beargit/commitID
     if (!fs_check_dir_exists(commit_dir)) {
       fprintf(stderr, "ERROR:  Commit %s does not exist.\n", arg);
       return 1;
@@ -450,7 +490,7 @@ int beargit_checkout(const char* arg, int new_branch) {
     // Set the current branch to none (i.e., detached).
     write_string_to_file(".beargit/.current_branch", "");
 
-    return checkout_commit(arg);
+    return checkout_commit(arg);  // jk: checkout to detached;
   }
 
   // Just a better name, since we now know the argument is a branch name.
