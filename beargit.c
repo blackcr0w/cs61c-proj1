@@ -670,9 +670,81 @@ int beargit_reset(const char* commit_id, const char* filename) {
 
   // Check if the file is in the commit directory
   /* COMPLETE THIS PART */
+  char *current_commit_id = (char *)malloc(COMMIT_ID_SIZE);
+  char *curr_dir = (char *) malloc(FILENAME_SIZE);  //jk: use this to read ID and msg
+  char *next_dir = (char *) malloc(FILENAME_SIZE);  //jk: use this to read ID and msg  
+  const char *prev = ".prev";
+  const char *beargit = ".beargit/";
+
+  strcpy(curr_dir, beargit);
+
+  while(1) {
+    char *temp_dir = (char *) malloc(FILENAME_SIZE);
+    strcpy(temp_dir, curr_dir);
+    strcat(temp_dir, prev);
+    FILE* f_temp_dir = fopen(temp_dir, "r");
+    
+    fscanf(f_temp_dir, "%s", current_commit_id);
+    fclose(f_temp_dir);
+    memset(temp_dir, '\0', sizeof(temp_dir));
+
+    if (!strcmp(current_commit_id, commit_id)) {
+      free(temp_dir);
+      free(next_dir);
+      break;
+    }
+   
+    strcpy(temp_dir, beargit);
+    strcat(temp_dir, current_commit_id);
+    strcat(temp_dir, "/");
+    strcpy(next_dir, temp_dir);
+
+    memset(curr_dir, '\0', sizeof(curr_dir));
+    strcpy(curr_dir, next_dir);
+    free(temp_dir);
+    memset(next_dir, '\0', sizeof(next_dir));
+    memset(current_commit_id, '\0', sizeof(current_commit_id));
+  }
+
+    char *temp_dir = (char *) malloc(FILENAME_SIZE);
+    strcpy(temp_dir, curr_dir);
+    strcat(temp_dir, ".index");
+    FILE* f_index_src = fopen(temp_dir, "r");
+    char *index_file = (char *) malloc(FILENAME_SIZE);
+
+    char line[FILENAME_SIZE];
+    int in_index = 0;
+    while(fgets(line, sizeof(line), f_index_src)) {
+      strtok(line, "\n");
+      if (!strcmp(line, filename)) {
+        in_index = 1;
+        break;
+      }
+    }
+    if (!in_index) {
+      fprintf(stderr, "ERROR:  %s is not in the index of commit %s.\n", filename, commit_id);
+      return 1;
+    }
 
   // Copy the file to the current working directory
   /* COMPLETE THIS PART */
+  /* copy all files of commit folder to working root folder */
+    FILE* findex_temp = fopen(".beargit/.index", "r");
+    char file_to_cp[FILENAME_SIZE];
+    while(fgets(file_to_cp, sizeof(file_to_cp), f_index_src)) {
+      strtok(file_to_cp, "\n");
+      char *file_src = (char *)malloc(FILENAME_SIZE);
+      char *file_dst = (char *)malloc(FILENAME_SIZE);
+
+      strcpy(file_src, commit_dir);
+      strcat(file_src, file_to_cp);
+      strcpy(file_dst, "./");
+      strcat(file_dst, file_to_cp);
+      fs_cp(file_src, file_dst); 
+
+      free(file_src);
+      free(file_dst);
+    }     
 
   // Add the file if it wasn't already there
   /* COMPLETE THIS PART */
