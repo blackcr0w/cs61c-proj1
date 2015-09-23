@@ -48,8 +48,13 @@ int beargit_init(void) {
   fprintf(fbranches, "%s\n", "master");
   fclose(fbranches);
 
-  write_string_to_file(".beargit/.prev", "0000000000000000000000000000000000000000");
-  write_string_to_file(".beargit/.current_branch", "master");
+  FILE* fprev = fopen(".beargit/.prev", "w");
+  fprintf(fprev, "%s\n", "0000000000000000000000000000000000000000");
+  fclose(fprev);
+
+  FILE* f_curr_branch = fopen(".beargit/.current_branch", "w");
+  fprintf(f_curr_branch, "%s\n", "master");
+  fclose(f_curr_branch);
 
   return 0;
 }
@@ -132,8 +137,8 @@ int beargit_rm(const char* filename) {  // need better implementation of beargit
   /* COMPLETE THE REST */
   //jk: need modify again
 
-  FILE* findex = fopen(".beargit/.index", "a+");
-  FILE *fnewindex = fopen(".beargit/.newindex", "a+"); // jk: what is the diff of these two pointers?
+  FILE* findex = fopen(".beargit/.index", "r");
+  FILE *fnewindex = fopen(".beargit/.newindex", "w"); // jk: what is the diff of these two pointers?
 
   char line[FILENAME_SIZE];
   int file_exist = 0;
@@ -142,7 +147,7 @@ int beargit_rm(const char* filename) {  // need better implementation of beargit
     strtok(line, "\n");
     if (strcmp(line, filename) == 0) {
       file_exist = 1;
-      continue;
+      continue;     
     }
     fprintf(fnewindex, "%s\n", line);
   }
@@ -155,6 +160,7 @@ int beargit_rm(const char* filename) {  // need better implementation of beargit
     fclose(findex2);
     fclose(fnewindex);
     fs_cp(".beargit/.newindex", ".beargit/.index");
+    fs_rm(".beargit/.newindex");
     return 0;
   }
   else{
@@ -274,11 +280,11 @@ int beargit_commit(const char* msg) {
   strcpy(new_commit_msg, new_commit_dir);
   strcat(new_commit_msg, ".msg");
   FILE* fmsg = fopen(new_commit_msg, "w");
-  
-  write_string_to_file(new_commit_msg, msg);
-  write_string_to_file(".beargit/.prev", new_commit_id);
-
+  fprintf(fmsg, "%s\n", msg);
   fclose(fmsg);
+  FILE* fcommitid = fopen(".beargit/.prev", "w");
+  fprintf(fcommitid, "%s\n", new_commit_id);
+  fclose(fcommitid); 
   /* COMPLETE THE REST */
   //jk: printf("the next is: %s\n", current_branch);
 
@@ -306,19 +312,16 @@ int beargit_log(int limit) {
   strcpy(curr_dir, beargit);
   number_of_commit = 1;
 
-  while(current_commit_id != NULL) {
-
-    if (number_of_commit > limit) 
-      break;
-
+  while(number_of_commit <= limit) {
     // char *prev_dir = (char *) malloc(FILENAME_SIZE);
     // strcpy(curr_dir, current_commit_dir);
     char *temp_dir = (char *) malloc(FILENAME_SIZE);
     strcpy(temp_dir, curr_dir);
     strcat(temp_dir, prev);
+    FILE* f_temp_dir = fopen(temp_dir, "r");
+    char *current_commit_id = (char *)malloc(COMMIT_ID_SIZE);
 
-    read_string_from_file(temp_dir, current_commit_id, COMMIT_ID_BYTES);  //jk: curr_comm_id stores the ID
-
+    fscanf(f_temp_dir, "%s", current_commit_id);
     memset(temp_dir, '\0', sizeof(temp_dir));
    
     strcpy(temp_dir, beargit);
@@ -346,6 +349,7 @@ int beargit_log(int limit) {
     strcpy(curr_dir, next_dir);
     free(temp_dir);
     memset(next_dir, '\0', sizeof(curr_dir));
+
     number_of_commit++;
 
     if (!fs_check_dir_exists(curr_dir))
@@ -502,7 +506,9 @@ int beargit_checkout(const char* arg, int new_branch) {
     }
 
     // Set the current branch to none (i.e., detached).
-    write_string_to_file(".beargit/.current_branch", "");
+    FILE* f_curr_branch = fopen(".beargit/.current_branch", "w");
+    fprintf(f_curr_branch, "%s\n", "");
+    fclose(f_curr_branch);    
 
     return checkout_commit(arg);  // jk: checkout to detached;
   }
@@ -534,7 +540,9 @@ int beargit_checkout(const char* arg, int new_branch) {
     fs_cp(".beargit/.prev", branch_file);
   }
 
-  write_string_to_file(".beargit/.current_branch", branch_name);
+  FILE* f_curr_branch = fopen(".beargit/.current_branch", "w");
+  fprintf(f_curr_branch, "%s\n", branch_name);
+  fclose(f_curr_branch);  
 
   // Read the head commit ID of this branch.
   char branch_head_commit_id[COMMIT_ID_SIZE];
