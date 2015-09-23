@@ -94,7 +94,7 @@ void simple_log_test(void)
     run_commit(&commit_list, "THIS IS BEAR TERRITORY!2");
     run_commit(&commit_list, "THIS IS BEAR TERRITORY!3");
 
-    retval = beargit_log(10);
+    retval = beargit_log(4);
     CU_ASSERT(0==retval);
 
     struct commit* cur_commit = commit_list;
@@ -137,6 +137,63 @@ void simple_log_test(void)
     free_commit_list(&commit_list);
 }
 
+
+/* 
+ * This is a test that can check beargit_add method. It can check what value should return when we add 
+ * a new file, and also it can check what value should return when we add a existing file. It also check 
+ * that if the statement printing out correct stdout. 
+ */
+
+void status_test(void) {
+    struct commit* commit_list = NULL;
+    int retval;
+    retval = beargit_init();
+    CU_ASSERT(0==retval);
+    FILE* a = fopen("a.txt", "w");
+    fclose(a);
+    retval = beargit_add("a.txt");
+    CU_ASSERT(0==retval);
+    retval = beargit_add("a.txt");
+    CU_ASSERT(3==retval);
+    FILE* b = fopen("b.txt", "w");
+    fclose(b);
+    retval = beargit_add("b.txt");
+    CU_ASSERT(0==retval);
+    FILE* c = fopen("c.txt", "w");
+    fclose(c);
+    retval = beargit_add("c.txt");
+    CU_ASSERT(0==retval);
+
+    retval = beargit_status();
+    CU_ASSERT(0==retval);
+    FILE* fstdout = fopen("TEST_STDOUT", "r");
+    CU_ASSERT_PTR_NOT_NULL(fstdout);
+}
+
+/* This is a test that can check beargit_rm method. It can check if there is a file to rm 
+ * and will print out the error message. 
+ */
+
+void rm_test(void){
+  int retval = beargit_rm("a.txt"); 
+  if(!retval) {
+    FILE* fstderr = fopen("TEST_STDERR", "r");
+    CU_ASSERT_PTR_NULL(fstderr);
+    fclose(fstderr);
+
+  } else {
+    FILE* fstderr = fopen("TEST_STDERR", "r");
+    CU_ASSERT_PTR_NOT_NULL(fstderr);
+    CU_ASSERT_PTR_NOT_NULL(fgets(line, LINE_SIZE, fstderr));
+    CU_ASSERT(!strncmp(line, "ERROR:  File a.txt not tracked", strlen("ERROR:  File a.txt not tracked")));
+    
+    CU_ASSERT_PTR_NULL(fgets(line, LINE_SIZE, fstderr));
+    CU_ASSERT(feof(fstderr));
+    fclose(fstderr);
+  }
+}
+
+
 /* The main() function for setting up and running the tests.
  * Returns a CUE_SUCCESS on successful running, another
  * CUnit error code on failure.
@@ -145,6 +202,9 @@ int cunittester()
 {
    CU_pSuite pSuite = NULL;
    CU_pSuite pSuite2 = NULL;
+   CU_pSuite pSuite3 = NULL;
+   CU_pSuite pSuite4 = NULL;
+
 
    /* initialize the CUnit test registry */
    if (CUE_SUCCESS != CU_initialize_registry())
@@ -176,6 +236,36 @@ int cunittester()
       CU_cleanup_registry();
       return CU_get_error();
    }
+
+
+   /* add suite 3 to the registry */
+   pSuite3 = CU_add_suite("Suite_3", init_suite, clean_suite);
+   if (NULL == pSuite3) {
+      CU_cleanup_registry();
+      return CU_get_error();
+   }
+
+   /* Add tests to the Suite #3 */
+   if (NULL == CU_add_test(pSuite3, "Status output test", status_test))
+   {
+      CU_cleanup_registry();
+      return CU_get_error();
+   }
+   
+   /* add suite 4 to the registry */
+   pSuite4 = CU_add_suite("Suite_4", init_suite, clean_suite);
+   if (NULL == pSuite4) {
+      CU_cleanup_registry();
+      return CU_get_error();
+   }
+
+   /* Add tests to the Suite #4 */
+   if (NULL == CU_add_test(pSuite4, "Rm Stderr output test", rm_test))
+   {
+      CU_cleanup_registry();
+      return CU_get_error();
+   }
+
 
    /* Run all tests using the CUnit Basic interface */
    CU_basic_set_mode(CU_BRM_VERBOSE);

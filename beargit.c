@@ -246,7 +246,7 @@ int beargit_commit(const char* msg) {
   fscanf(f_curr_branch1, "%s", current_branch1);  
   fclose(f_curr_branch1);
   if (strlen(current_branch1) == 1) {
-    fprintf(stderr, "ERROR:  At the HEAD of commit\n");  // jk: added by me
+    fprintf(stderr, "ERROR:  Need to be on HEAD of a branch to commit.\n");  // jk: added by me
     return 3;
   }
 
@@ -331,7 +331,6 @@ int beargit_log(int limit) {
   char *current_commit_dir = (char *) malloc(FILENAME_SIZE);  //jk: current working dir
   char *curr_dir = (char *) malloc(FILENAME_SIZE);  //jk: use this to read ID and msg
   char *next_dir = (char *) malloc(FILENAME_SIZE);  //jk: use this to read ID and msg  
-  char *current_commit_id = (char *) malloc(COMMIT_ID_SIZE);  //jk: store ID
   char *current_commit_msg = (char *) malloc(MSG_SIZE);  //jk: stroe msg
   int number_of_commit;
   const char *prev = ".prev";
@@ -342,6 +341,9 @@ int beargit_log(int limit) {
   number_of_commit = 1;
 
   while(number_of_commit <= limit) {
+    if (number_of_commit > limit) {
+      break;
+    }
     // char *prev_dir = (char *) malloc(FILENAME_SIZE);
     // strcpy(curr_dir, current_commit_dir);
     char *temp_dir = (char *) malloc(FILENAME_SIZE);
@@ -361,33 +363,52 @@ int beargit_log(int limit) {
 
     if (number_of_commit == 1 && !fs_check_dir_exists(temp_dir)){
       fprintf(stderr, "%s\n", "ERROR:  There are no commits.");
+      free(temp_dir);
+      free(current_commit_id);
+      free(current_commit_dir);
+      free(curr_dir);
+      free(next_dir);
+      free(current_commit_msg);      
       return 1;
     }
 
-    if (!fs_check_dir_exists(temp_dir))
+    if (!fs_check_dir_exists(temp_dir)) {
+      free(temp_dir);
+      free(current_commit_dir);
+      free(curr_dir);
+      free(next_dir);
+      free(current_commit_id);
+      free(current_commit_msg);  
       return 0;
+    }
 
     strcat(temp_dir, msg);
   
     read_string_from_file(temp_dir, current_commit_msg, MSG_SIZE);
 
     printf("commit %s\n", current_commit_id);
-    printf("   %s\n\n", current_commit_msg);
+    printf("   %s\n", current_commit_msg);
 
     memset(curr_dir, '\0', sizeof(curr_dir));
     strcpy(curr_dir, next_dir);
     free(temp_dir);
+    free(current_commit_id);
     memset(next_dir, '\0', sizeof(curr_dir));
 
     number_of_commit++;
 
-    if (!fs_check_dir_exists(curr_dir))
+    if (!fs_check_dir_exists(curr_dir)) {
+      free(current_commit_dir);
+      free(curr_dir);
+      free(next_dir);
+      free(current_commit_msg);        
       return 0;
+    }
   }
+  
   free(current_commit_dir);
   free(curr_dir);
   free(next_dir);
-  free(current_commit_id);
   free(current_commit_msg);
 
   return 0;
@@ -505,13 +526,14 @@ int checkout_commit(const char* commit_id) {
   fprintf(fprev, commit_id);
   fclose(fprev);
 
-
+  free(temp_id);
+  free(commit_dir);
+  free(temp_dir); 
   return 0;
 }
 
 int is_it_a_commit_id(const char* commit_id) {
   char *curr_dir = (char *) malloc(FILENAME_SIZE);  
-  char *current_commit_id = (char *) malloc(COMMIT_ID_SIZE);  
   const char *beargit = ".beargit/";
   const char *prev = ".prev";
 
@@ -540,16 +562,17 @@ int is_it_a_commit_id(const char* commit_id) {
     strcat(temp_dir, current_commit_id);
     strcat(temp_dir, "/");
     if (!fs_check_dir_exists(temp_dir)) {
-      // free(curr_dir);
-      // free(current_commit_id);
-      // free(temp_dir);
+      free(curr_dir);
+      free(current_commit_id);
+      free(temp_dir);
       return 0;
     }      
     memset(curr_dir, '\0', sizeof(curr_dir));
     strcpy(curr_dir, temp_dir);
     free(temp_dir);
+    free(current_commit_id);
   }
-  
+  free(curr_dir);
   return 0;
 }
 
@@ -603,7 +626,7 @@ int beargit_checkout(const char* arg, int new_branch) {
     fprintf(stderr, "ERROR:  A branch named %s already exists.\n", branch_name);
     return 1;
   } else if (!branch_exists && !new_branch) {
-    fprintf(stderr, "ERROR:  No branch or commit %s exists\n", branch_name);
+    fprintf(stderr, "ERROR:  No branch or commit %s exists.\n", branch_name);
     return 1;
   }
 
