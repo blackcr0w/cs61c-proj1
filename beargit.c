@@ -322,6 +322,7 @@ int beargit_log(int limit) {
     char *current_commit_id = (char *)malloc(COMMIT_ID_SIZE);
 
     fscanf(f_temp_dir, "%s", current_commit_id);
+    fclose(f_temp_dir);
     memset(temp_dir, '\0', sizeof(temp_dir));
    
     strcpy(temp_dir, beargit);
@@ -396,12 +397,14 @@ int get_branch_number(const char* branch_name) {
 int beargit_branch() {
   /* COMPLETE THE REST */
   char *curr_branch = (char *)malloc(BRANCHNAME_SIZE);
-  read_string_from_file(".beargit/.current_branch", curr_branch, BRANCHNAME_SIZE);
+  FILE* f_curr_branch = fopen(".beargit/.current_branch", "r");  
   char line[BRANCHNAME_SIZE];
-
   FILE* fbranches = fopen(".beargit/.branches", "r");  
+
+  fscanf(f_curr_branch, "%s", curr_branch);  
   while(fgets(line, sizeof(line), fbranches)) {
     strtok(line, "\n");
+
     if (!strcmp(line, curr_branch)) {
       printf("*  %s\n", line);
       continue;
@@ -422,10 +425,6 @@ int checkout_commit(const char* commit_id) {
   /* COMPLETE THE REST */
 
   return 0;
-}
-
-void delete_eof(char *str) {
-
 }
 
 int is_it_a_commit_id(const char* commit_id) {
@@ -482,14 +481,16 @@ int beargit_checkout(const char* arg, int new_branch) {
   //fprintf(stdout, "%s\n", "in beargit_checkout 0");
   char current_branch[BRANCHNAME_SIZE];
   //fprintf(stdout, "%s\n", "in beargit_checkout 1");
-  read_string_from_file(".beargit/.current_branch", current_branch, BRANCHNAME_SIZE);
+  FILE* f_curr_branch = fopen(".beargit/.current_branch", "r");  
+  fscanf(f_curr_branch, "%s", current_branch);  
+  fclose(f_curr_branch);
   // jk: if not detached and checkout, means check out to a new HEAD or get detached???
   // If not detached, update the current branch by storing the current HEAD into that branch's file...
   if (strlen(current_branch)) {  // jk: not detached <=> in the HEAD of another branch
     char current_branch_file[BRANCHNAME_SIZE+50];
     sprintf(current_branch_file, ".beargit/.branch_%s", current_branch);
     FILE* f_curr_branch = fopen(current_branch_file, "w");
-    fprintf(f_curr_branch, "%s", "\0");
+    fprintf(f_curr_branch, "%s", "");
     fclose(f_curr_branch);      
     fs_cp(".beargit/.prev", current_branch_file);
   }
@@ -540,9 +541,9 @@ int beargit_checkout(const char* arg, int new_branch) {
     fs_cp(".beargit/.prev", branch_file);
   }
 
-  FILE* f_curr_branch = fopen(".beargit/.current_branch", "w");
-  fprintf(f_curr_branch, "%s\n", branch_name);
-  fclose(f_curr_branch);  
+  FILE* f_curr_branch2 = fopen(".beargit/.current_branch", "w");
+  fprintf(f_curr_branch2, "%s\n", branch_name);
+  fclose(f_curr_branch2);  
 
   // Read the head commit ID of this branch.
   char branch_head_commit_id[COMMIT_ID_SIZE];
