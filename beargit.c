@@ -276,12 +276,30 @@ int beargit_commit(const char* msg) {
   fs_cp(".beargit/.index", new_commit_index);
   fs_cp(".beargit/.prev", new_commit_prev);
 
+  /*copy all file in .index to commitID folder*/
+  FILE* findex_temp = fopen(".beargit/.index", "r");
+  char line[FILENAME_SIZE];
+  while(fgets(line, sizeof(line), findex_temp)) {
+    strtok(line, "\n");
+    char *file_src = (char *)malloc(FILENAME_SIZE);
+    char *file_dst = (char *)malloc(FILENAME_SIZE);
+
+    strcpy(file_src, line);
+    strcpy(file_dst, new_commit_dir);
+    strcat(file_dst, line);
+    fs_cp(file_src, file_dst); 
+
+    free(file_src);
+    free(file_dst);
+  }
+
   char new_commit_msg[1000];
   strcpy(new_commit_msg, new_commit_dir);
   strcat(new_commit_msg, ".msg");
   FILE* fmsg = fopen(new_commit_msg, "w");
   fprintf(fmsg, "%s\n", msg);
   fclose(fmsg);
+  //write_string_to_file(".beargit/.prev", new_commit_id);
   FILE* fcommitid = fopen(".beargit/.prev", "w");
   fprintf(fcommitid, "%s\n", new_commit_id);
   fclose(fcommitid); 
@@ -423,7 +441,7 @@ int beargit_branch() {
 
 int checkout_commit(const char* commit_id) {
   /* COMPLETE THE REST */
-
+  
   return 0;
 }
 
@@ -521,7 +539,7 @@ int beargit_checkout(const char* arg, int new_branch) {
     fprintf(stderr, "ERROR:  A branch named %s already exists.\n", branch_name);
     return 1;
   } else if (!branch_exists && !new_branch) {
-    fprintf(stderr, "ERROR: No branch %s exists\n", branch_name);
+    fprintf(stderr, "ERROR:  No branch or commit %s exists\n", branch_name);
     return 1;
   }
 
