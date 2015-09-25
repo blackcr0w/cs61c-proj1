@@ -484,7 +484,7 @@ int checkout_commit(const char* commit_id) {
 
   if (!strcpy(temp_id, "0000000000000000000000000000000000000000")) {
     FILE* findex = fopen(".beargit/.index", "w");
-    fprintf(findex, "");
+    fprintf(findex, '\0');
     fclose(findex);
     FILE* fprev = fopen(".beargit/.prev", "w");
     fprintf(fprev, "0000000000000000000000000000000000000000");
@@ -534,8 +534,14 @@ int is_it_a_commit_id(const char* commit_id) {
   char *curr_dir = (char *) malloc(FILENAME_SIZE);  
   const char *beargit = ".beargit/";
   const char *prev = ".prev";
-
   strcpy(curr_dir, beargit);
+  char *temp_dir = (char *) malloc(FILENAME_SIZE);
+  strcpy(temp_dir, beargit);
+  strcat(temp_dir, commit_id);
+  strcat(temp_dir, "/");
+  return fs_check_dir_exists(temp_dir);
+
+/*
   while(1) {
     char *temp_dir = (char *) malloc(FILENAME_SIZE);
     strcpy(temp_dir, curr_dir);
@@ -571,7 +577,7 @@ int is_it_a_commit_id(const char* commit_id) {
     free(current_commit_id);
   }
   free(curr_dir);
-  return 0;
+  return 0;*/
 }
 
 int beargit_checkout(const char* arg, int new_branch) {  
@@ -612,20 +618,22 @@ int beargit_checkout(const char* arg, int new_branch) {
   int branch_exists = (get_branch_number(arg) >= 0);
 
   // Check for errors.--------------update
-/*  if (!(!branch_exists || !new_branch)) {
+  if (branch_exists && new_branch) {
     fprintf(stderr, "ERROR:  A branch named %s already exists.\n", arg);
     return 1;
-  } else if (!branch_exists && new_branch) {
+  } else if (!branch_exists && !new_branch) {
+    if (is_it_a_commit_id(arg)) 
+      return checkout_commit(arg);
     fprintf(stderr, "ERROR:  No branch or commit %s exists.\n", arg);
     return 1;
-  }  */
-  if (branch_exists && new_branch) {  // jk: change 
-    fprintf(stderr, "ERROR:  A branch named %s already exists.\n", branch_name);
-    return 1;
-  } else if (!branch_exists && !new_branch) {
-    fprintf(stderr, "ERROR:  No branch or commit %s exists.\n", branch_name);
-    return 1;
-  }
+  }  
+  // if (branch_exists && new_branch) {  // jk: change 
+  //   fprintf(stderr, "ERROR:  A branch named %s already exists.\n", branch_name);
+  //   return 1;
+  // } else if (!branch_exists && !new_branch) {
+  //   fprintf(stderr, "ERROR:  No branch or commit %s exists.\n", branch_name);
+  //   return 1;
+  // }
 
   // File for the branch we are changing into.
   char *branch_file = (char *)malloc(BRANCHNAME_SIZE);
