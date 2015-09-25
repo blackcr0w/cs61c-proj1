@@ -507,7 +507,7 @@ int checkout_commit(const char* commit_id) {
   /* if checkout to initial commit, set index to empty and prev to init commit */
   if (strstr(temp_id, "0000000000000000000000000000000000000000") != NULL) {
     FILE* findex = fopen(".beargit/.index", "w");
-    fprintf(findex, "%s", '\0');
+    fprintf(findex, "%s", "");
     fclose(findex);
     FILE* fprev = fopen(".beargit/.prev", "w");
     fprintf(fprev, "0000000000000000000000000000000000000000");
