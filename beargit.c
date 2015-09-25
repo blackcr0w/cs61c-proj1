@@ -8,7 +8,7 @@
 #include "util.h"
 
 /* Implementation Notes:
- *
+ * 
  * - Functions return 0 if successful, 1 if there is an error.
  * - All error conditions in the function description need to be implemented
  *   and written to stderr. We catch some additional errors for you in main.c.
