@@ -482,9 +482,10 @@ int checkout_commit(const char* commit_id) {
   char *temp_id = (char *)malloc(COMMIT_ID_SIZE);
   strcmp(temp_id, commit_id);
 
+  /* if checkout to initial commit, set index to empty and prev to init commit */
   if (!strcpy(temp_id, "0000000000000000000000000000000000000000")) {
     FILE* findex = fopen(".beargit/.index", "w");
-    fprintf(findex, '\0');
+    fprintf(findex, "%s", '\0');
     fclose(findex);
     FILE* fprev = fopen(".beargit/.prev", "w");
     fprintf(fprev, "0000000000000000000000000000000000000000");
@@ -521,7 +522,8 @@ int checkout_commit(const char* commit_id) {
   } 
 
   FILE* fprev = fopen(".beargit/.prev", "w");
-  fprintf(fprev, commit_id);
+  fprintf(fprev, "%s", commit_id);
+  //fprintf(fprev, commit_id);
   fclose(fprev);
 
   free(temp_id);
@@ -594,7 +596,9 @@ int beargit_checkout(const char* arg, int new_branch) {
   // If not detached, update the current branch by storing the current HEAD into that branch's file...
   if (strlen(current_branch) > 0) {  // jk: not detached <=> in the HEAD of another branch
     char current_branch_file[BRANCHNAME_SIZE+50];
-    sprintf(current_branch_file, ".beargit/.branch_%s", current_branch);  //.branch_comitID     
+    sprintf(current_branch_file, ".beargit/.branch_%s", current_branch);  //.branch_comitID  
+    FILE* f_curr_branch3 = fopen(current_branch_file, "w");  
+    fclose(f_curr_branch3);
     fs_cp(".beargit/.prev", current_branch_file);
   }
 
@@ -673,85 +677,57 @@ int beargit_reset(const char* commit_id, const char* filename) {
       return 1;
   }
 
-//   // Check if the file is in the commit directory
-//   /* COMPLETE THIS PART */
-//   char *current_commit_id = (char *)malloc(COMMIT_ID_SIZE);
-//   char *curr_dir = (char *) malloc(FILENAME_SIZE);  //jk: use this to read ID and msg
-//   char *next_dir = (char *) malloc(FILENAME_SIZE);  //jk: use this to read ID and msg  
-//   const char *prev = ".prev";
-//   const char *beargit = ".beargit/";
+  // Check if the file is in the commit directory
+  /* COMPLETE THIS PART */
+  char *curr_dir = (char *) malloc(FILENAME_SIZE);  //jk: use this to read ID and msg
+  char *index_dir = (char *) malloc(FILENAME_SIZE);  //jk: use this to read ID and msg
+  const char *prev = ".prev";
+  const char *beargit = ".beargit/";
 
-//   strcpy(curr_dir, beargit);
+  strcpy(curr_dir, beargit);
+  strcat(curr_dir, commit_id);
+  strcat(curr_dir, "/");
 
-//   while(1) {
-//     char *temp_dir = (char *) malloc(FILENAME_SIZE);
-//     strcpy(temp_dir, curr_dir);
-//     strcat(temp_dir, prev);
-//     FILE* f_temp_dir = fopen(temp_dir, "r");
-    
-//     fscanf(f_temp_dir, "%s", current_commit_id);
-//     fclose(f_temp_dir);
-//     memset(temp_dir, '\0', sizeof(temp_dir));
+  strcpy(index_dir, curr_dir);
+  strcat(index_dir, ".index");
 
-//     if (!strcmp(current_commit_id, commit_id)) {
-//       free(temp_dir);
-//       free(next_dir);
-//       break;
-//     }
-   
-//     strcpy(temp_dir, beargit);
-//     strcat(temp_dir, current_commit_id);
-//     strcat(temp_dir, "/");
-//     strcpy(next_dir, temp_dir);
+  FILE* f_index_src = fopen(index_dir, "r");
 
-//     memset(curr_dir, '\0', sizeof(curr_dir));
-//     strcpy(curr_dir, next_dir);
-//     free(temp_dir);
-//     memset(next_dir, '\0', sizeof(next_dir));
-//     memset(current_commit_id, '\0', sizeof(current_commit_id));
-//   }
+  char line[FILENAME_SIZE];
+  int in_index = 0;
+  while(fgets(line, sizeof(line), f_index_src)) {
+    strtok(line, "\n");
+    if (!strcmp(line, filename)) {
+      in_index = 1;
+      break;
+    }
+  }
+  fclose(f_index_src);
+  if (!in_index) {
+    fprintf(stderr, "ERROR:  %s is not in the index of commit %s.\n", filename, commit_id);
+    return 1;
+  }
+  char *file_dir = (char *)malloc(FILENAME_SIZE);
+  strcpy(file_dir, curr_dir);
+  strcat(file_dir, filename);
 
-//   char *temp_index_dir = (char *) malloc(FILENAME_SIZE);
-//   strcpy(temp_index_dir, curr_dir);
-//   strcat(temp_index_dir, ".index");
-//   FILE* f_index_src = fopen(temp_index_dir, "r");
-//   printf("open dir is : %s\n", temp_index_dir);
+  char *file_dir2 = (char *)malloc(FILENAME_SIZE);
+  strcpy(file_dir2, "./");
+  strcat(file_dir2, filename);  
 
-//   char line[FILENAME_SIZE];
-//   int in_index = 0;
-//   while(fgets(line, sizeof(line), f_index_src)) {
-//     strtok(line, "\n");
-//     printf("line:%s filename: %s\n", line, filename);
-//     if (!strcmp(line, filename)) {
-//       printf("%s\n", "here1");
-//       in_index = 1;
-//       break;
-//     }
-//   }
-//   fclose(f_index_src);
-//   if (!in_index) {
-//     fprintf(stderr, "ERROR:  %s is not in the index of commit %s.\n", filename, commit_id);
-//     return 1;
-//   }
+  FILE *fcp_dst = fopen(file_dir2, "w");
+  fclose(fcp_dst);
+  fs_cp(file_dir, file_dir2);
 
-// // Copy the file to the current working directory
-// /* COMPLETE THIS PART */
-//   char *file_cp_src = (char *) malloc(FILENAME_SIZE);
-//   strcpy(file_cp_src, curr_dir);
-//   strcat(file_cp_src, filename);
-//   char *file_cp_dst = (char *) malloc(FILENAME_SIZE);
-//   strcpy(file_cp_dst, ".beargit/");
-//   strcat(file_cp_dst, filename);
-//   FILE *fcp_dst = fopen(file_cp_dst, "w");
-//   fclose(fcp_dst);
-//   fs_cp(file_cp_src, file_cp_dst);
-//   return 0;
-//   // free(file_src);
-//   // free(file_dst);
+// Copy the file to the current working directory
+/* COMPLETE THIS PART */
+  return 0;
+  // free(file_src);
+  // free(file_dst);
       
 
-//   // Add the file if it wasn't already there
-//   /* COMPLETE THIS PART */
+  // Add the file if it wasn't already there
+  /* COMPLETE THIS PART */
 
 }
 
