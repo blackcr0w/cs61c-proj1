@@ -3,6 +3,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <CUnit/Basic.h>
+#include <limits.h>
 #include "beargit.h"
 #include "util.h"
 
@@ -94,7 +95,7 @@ void simple_log_test(void)
     run_commit(&commit_list, "THIS IS BEAR TERRITORY!2");
     run_commit(&commit_list, "THIS IS BEAR TERRITORY!3");
 
-    retval = beargit_log(4);
+    retval = beargit_log();
     CU_ASSERT(0==retval);
 
     struct commit* cur_commit = commit_list;
@@ -273,4 +274,3 @@ int cunittester()
    CU_cleanup_registry();
    return CU_get_error();
 }
-
